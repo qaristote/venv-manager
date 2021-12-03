@@ -1,0 +1,92 @@
+{ config, lib, pkgs, ... }:
+
+with lib;
+with builtins;
+let
+  cfg = config.ocaml;
+  ocamlVersion = (parseDrvName cfg.ocamlPackages.ocaml.name).version;
+
+  tuaregPackages = optionals cfg.tuareg.enable (with pkgs; [ ocamlformat opam ])
+    ++ (with cfg.ocamlPackages; [ merlin ocp-indent utop ]);
+  userPackages = cfg.packages cfg.ocamlPackages;
+  ocamlBuildInputs = (with cfg.ocamlPackages; [ ocaml findlib ]) ++ (with pkgs;
+    if versionAtLeast ocamlVersion "4.12" then
+      [ dune_2 ]
+    else
+      (optional (versionAtLeast ocamlVersion "4.02") dune_1)) ++ tuaregPackages
+    ++ userPackages;
+
+  ocamlInit = pkgs.writeText "ocamlinit" (''
+    let () =
+        try Topdirs.dir_directory "${cfg.ocamlPackages.findlib}/lib/ocaml/${ocamlVersion}/site-lib"
+        with Not_found -> ()
+    ;;
+    #use "topfind";;
+  '' + (optionalString cfg.toplevel.list "#list;;")
+    + (optionalString cfg.toplevel.thread "#thread;;") + (concatStringsSep "\n"
+      (map (pkg: ''#require "${pkg.pname}";;'') userPackages))
+    + cfg.toplevel.extraInit);
+in {
+  options.ocaml = {
+    enable = mkEnableOption { name = "ocaml"; };
+    ocamlPackages = mkOption {
+      type = types.lazyAttrsOf types.package;
+      default = pkgs.ocamlPackages;
+      defaultText = literalExample "pkgs.ocamlPackages";
+      description = ''
+        The set of OCaml packages from which to get OCaml and its packages.
+        Use this option to set the version of OCaml.
+      '';
+      example = literalExample "pkgs.ocaml-ng.ocamlPackages_4_11";
+    };
+    packages = mkOption {
+      type = with types; functionTo (listOf package);
+      default = _: [ ];
+      defaultText = literalExample "_ : []";
+      description = ''
+        OCaml packages that will be made available to the environment.
+      '';
+      example = literalExample ''
+        ocamlPackages: with ocamlPackages; [ owl lwt ];
+      '';
+    };
+    toplevel = {
+      require = mkOption {
+        type = types.listOf types.str;
+        default = builtins.map (pkg: pkg.pname) cfg.packages;
+        defaultText = "builtins.map (pkg: pkg.pname) config.ocaml.packages";
+        description = ''
+          The list of names of packages to load when launching a top-level.
+        '';
+        example = [ "owl" "lwt" ];
+      };
+      # Whether to list loaded packages when launching a top-level.
+      list = mkEnableOption "#require list;;";
+      # Whether to enable threading when running a top-level.
+      thread = mkEnableOption "#require thread;;";
+      extraInit = mkOption {
+        type = types.lines;
+        default = "";
+        description = ''
+          Additional commands to run when running a top-level.
+        '';
+        example = "Topfind.reset();;";
+      };
+    };
+    # Whether to load packages required by Tuareg (Emacs' OCaml mode).
+    tuareg.enable = mkEnableOption "tuareg";
+  };
+
+  config = mkIf cfg.enable {
+    buildInputs = ocamlBuildInputs;
+    aliases = {
+      utop = let
+        utops = builtins.filter
+          (p: match "(.*-utop)" (parseDrvName p.name).name != null)
+          ocamlBuildInputs;
+        utop = head utops;
+      in mkIf (utops != [ ]) ''${utop}/bin/utop -init "${ocamlInit}"'';
+      ocaml = ''${cfg.ocamlPackages.ocaml}/bin/ocaml -init "${ocamlInit}"'';
+    };
+  };
+}
