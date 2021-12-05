@@ -12,8 +12,8 @@ environments for different development frameworks.
 
 But creating a new virtual environment may end up being non trivial and
 cumbersome, because =nix-shell= doesn't have a similar database of crowdsourced
-configurations.
-Consider the example of OCaml virtual environments. Simply using the =shell.nix= file
+configurations. Consider the example of OCaml virtual environments. Simply using
+the =shell.nix= file given by
 #+BEGIN_SRC nix
   { pkgs ? import <nixpkgs> {} }:
   { 
@@ -28,7 +28,7 @@ rewrite the same code or to find the previous file and copy it.
 
 =venv-manager= aims to fill that gap by using the modularity of Nix to provide
 common configurations for virtual environments that may be enabled in a whim.
-Now creating the same OCaml environment only requires the following declaration
+Now creating the same OCaml environment only requires the following declaration.
 #+BEGIN_SRC nix
   {
     ocaml = {
