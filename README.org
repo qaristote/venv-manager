@@ -43,4 +43,4 @@ Now creating the same OCaml environment only requires the following declaration.
 To use =venv-manager=, clone this repository in =~/.config/venv-manager=. A new
 virtual environment configuration can then be created by copying the
 =shell-template.nix= (use an alias for that !) and filling in the =settings=
-attribute set.
+attribute set. The available options can be found in the [[file:modules/]] files.
