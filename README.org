@@ -1,0 +1,46 @@
+* Introduction
+
+~venv-manager~ is a set of nix modules that defines basic configurations for
+~nix-shell~, aiming to make it easier to declaratively manage virtual
+environments for different development frameworks.
+
+[[https://nixos.org/][NixOS]] indeed has, among others, two great advantages :
+- the ability to declaratively create virtual environments in =shell.nix= files
+  that may then be activated with =nix-shell= ;
+- the ability to enable many services in a single statement thanks to a huge
+  database of crowdsourced service configurations.
+
+But creating a new virtual environment may end up being non trivial and
+cumbersome, because =nix-shell= doesn't have a similar database of crowdsourced
+configurations.
+Consider the example of OCaml virtual environments. Simply using the =shell.nix= file
+#+BEGIN_SRC nix
+  { pkgs ? import <nixpkgs> {} }:
+  { 
+    buildInputs = with pkgs; [ ocaml ocamlPackages.lwt ]; 
+  } 
+#+END_SRC
+will not be enough as the =ocaml= binary needs to be made aware of the existence
+of the =lwt= library. After looking up how to do so, the user may then add the
+corresponding configuration to =shell.nix= (see [[file:modules/ocaml.nix]] for the
+solution). But creating another similar environment will require to either
+rewrite the same code or to find the previous file and copy it.
+
+=venv-manager= aims to fill that gap by using the modularity of Nix to provide
+common configurations for virtual environments that may be enabled in a whim.
+Now creating the same OCaml environment only requires the following declaration
+#+BEGIN_SRC nix
+  {
+    ocaml = {
+      enable = true;
+      packages = ocamlPackages: [ ocamlPackages.lwt ];
+    };
+  }
+#+END_SRC
+
+* Setup
+
+To use =venv-manager=, clone this repository in =~/.config/venv-manager=. A new
+virtual environment configuration can then be created by copying the
+=shell-template.nix= (use an alias for that !) and filling in the =settings=
+attribute set.
