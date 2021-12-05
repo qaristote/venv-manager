@@ -40,10 +40,35 @@ Now creating the same OCaml environment only requires the following declaration.
 
 * Setup
 
-To use =venv-manager=, clone this repository in =~/.config/venv-manager=. A new
-virtual environment configuration can then be created by copying the
+To use =venv-manager=, clone this repository in =~/.config/venv-manager=. 
+
+A new virtual environment configuration can then be created by copying the
 =shell-template.nix= (use an alias for that !) and filling in the =settings=
 attribute set. The available options can be found in the [[file:modules/]] files.
+
+A default configuration that will be used in all virtual environments may also
+be declared in ~config/default.nix~. For example :
+#+BEGIN_SRC nix
+      { config, lib, pkgs, ... }:
+
+      {
+        # enable support for direnv in all virtual environments
+        # this value cannot be overriden locally
+        direnv.enable = true;
+
+        # enable support for Tuareg (OCaml's Emacs mode) in all virtual environments
+        # where OCaml is enabled
+        # this value can be overriden locally
+        ocaml.tuareg.enable = lib.mkDefault true;
+
+        # an example of something a little more complex
+        # this value will be merged with other values declared locally
+        buildInputs = lib.optional (config.ocaml.enable && 
+                                    config.python.enable) 
+          pkgs.setupcfg2nix;
+      }
+#+END_SRC
+
 
 * To do
 
