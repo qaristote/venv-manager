@@ -44,3 +44,13 @@ To use =venv-manager=, clone this repository in =~/.config/venv-manager=. A new
 virtual environment configuration can then be created by copying the
 =shell-template.nix= (use an alias for that !) and filling in the =settings=
 attribute set. The available options can be found in the [[file:modules/]] files.
+
+* To do
+
+~venv-manager~ is still in its early development phase and there is still a lot
+of work to do. Among others :
+- adding support for all every existing programming languages ;
+- writing tests ;
+- creating a binary that automates the setup and creation of new virtual
+  environment configurations, and lists the available options (think
+  ~home-manager~ or ~nixos-option~)
