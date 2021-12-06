@@ -16,6 +16,9 @@ let
     ++ userPackages;
 
   stdlibDir = "${cfg.ocamlPackages.findlib}/lib/ocaml/${cfg.version}/site-lib";
+  parseOcamlDrvName = with builtins;
+    pkg:
+    head (match "ocaml${cfg.version}-(.*)" (parseDrvName pkg.name).name);
   ocamlInit = pkgs.writeText "ocamlinit" (
     # load libs
     (concatStringsSep "\n" (map (dir: ''
@@ -30,7 +33,8 @@ let
     + (optionalString cfg.toplevel.list "#list;;")
     # require packages
     + (concatStringsSep "\n"
-      (map (pkg: ''# require "${pkg.pname}";;'') userPackages))
+      (map (pkg: ''# require "${parseOcamlDrvName pkg}";;'')
+        userPackages))
     # additional init commands
     + cfg.toplevel.extraInit
 
