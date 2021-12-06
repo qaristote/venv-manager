@@ -4,11 +4,10 @@ with lib;
 let
   cfg = config.why3;
   why3BuildInputs = [ cfg.package ] ++ cfg.provers;
-  why3Conf = pkgs.runCommand "why3.conf" { buildInputs = why3BuildInputs; }
-    ''
+  why3Conf = pkgs.runCommand "why3.conf" { buildInputs = why3BuildInputs; } ''
     why3 -C $out config detect
     echo "${cfg.extraConfig}" >> $out
-    '';
+  '';
   why3Flags = concatStringsSep " " [ "--extra-config ${why3Conf}" ];
 in {
   options.why3 = {
