@@ -1,27 +1,15 @@
-{ pkgs, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 with lib;
 let
   cfg = config.why3;
-  proverSubmodule = types.submodule {
-    options = {
-      name = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = ''
-          The name of the prover.
-        '';
-      };
-      package = mkOption {
-        type = types.package;
-        description = ''
-          The package providing the prover.
-        '';
-      };
-    };
-  };
-  why3BuildInputs = [ cfg.package ] ++ cfg.provers.detect
-    ++ (mapAttrsToList (_: prover: prover.package) cfg.provers.manual);
+  why3BuildInputs = [ cfg.package ] ++ cfg.provers;
+  why3Conf = pkgs.runCommand "why3.conf" { buildInputs = why3BuildInputs; }
+    ''
+    why3 -C $out config detect
+    echo "${cfg.extraConfig}" >> $out
+    '';
+  why3Flags = concatStringsSep " " [ "--extra-config ${why3Conf}" ];
 in {
   options.why3 = {
     enable = mkEnableOption "why3";
@@ -33,31 +21,26 @@ in {
         The package for why3. This sets the version of Why3.
       '';
     };
-    provers = {
-      detect = mkOption {
-        type = types.listOf types.package;
-        default = [ ];
-        description = ''
-          Provers to use that are known to be supported by Why3.
-        '';
-        example = literalExample "with pkgs; [ z3 ccv4 ]";
-      };
-      manual = mkOption {
-        type = types.attrsOf proverSubmodule;
-        default = { };
-        description = ''
-          Provers to use that are not known to be supported by Why3.
-        '';
-        example = literalExample ''
-          {
-            myProver = {
-              package = pkgs.my-prover;
-            };
-          }
-        '';
-      };
+    provers = mkOption {
+      type = types.listOf types.package;
+      default = [ ];
+      description = ''
+        A list of packages that should be detected as provers by Why3 and
+        added as build inputs.
+      '';
+      example = literalExample "with pkgs; [ z3 ccv4 ]";
+    };
+    extraConfig = mkOption {
+      type = types.lines;
+      default = "";
+      description = ''
+        Extra configuration entries for Why3.
+      '';
     };
   };
 
-  config.why3 = mkIf cfg.enable { buildInputs = why3BuildInputs; };
+  config = mkIf cfg.enable {
+    buildInputs = why3BuildInputs;
+    aliases = { why3 = "${cfg.package}/bin/why3 ${why3Flags} \\$@"; };
+  };
 }
