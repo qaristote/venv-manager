@@ -4,7 +4,7 @@ with lib;
 let cfg = config;
 in {
   imports =
-    [ ./coq.nix ./golang.nix ./latex.nix ./nix.nix ./python.nix ./ocaml.nix ];
+    [ ./coq.nix ./golang.nix ./latex.nix ./nix.nix ./python.nix ./ocaml.nix ./why3.nix ];
 
   options = {
     # Inputs
