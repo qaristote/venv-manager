@@ -11,7 +11,7 @@ let
     else
       "-pdf-")
     (optionalString cfg.minted.enable "-shell-escape")
-  ] ++ (map (filename: ''-r "${filename}"'') cfg.latexmk.rc)
+  ] ++ (map (filename: "-r ${filename}") cfg.latexmk.rc)
     ++ cfg.latexmk.extraFlags);
   latexBuildInput = cfg.texlive.combine ((cfg.packages cfg.texlive)
     // (optionalAttrs cfg.latexmk.enable { inherit (cfg.texlive) latexmk; })
