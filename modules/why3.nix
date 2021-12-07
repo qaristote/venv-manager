@@ -8,7 +8,7 @@ let
     why3 -C $out config detect
     echo "${cfg.extraConfig}" >> $out
   '';
-  why3Flags = concatStringsSep " " [ "--extra-config ${why3Conf}" ];
+  why3Flags = concatStringsSep " " [ "--config=${why3Conf}" ];
 in {
   options.why3 = {
     enable = mkEnableOption "why3";
