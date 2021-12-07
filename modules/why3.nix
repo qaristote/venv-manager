@@ -3,7 +3,8 @@
 with lib;
 let
   cfg = config.why3;
-  why3BuildInputs = [ cfg.package ] ++ cfg.provers;
+  why3BuildInputs = [ cfg.package ] ++ cfg.provers
+    ++ (optional config.coq.enable config.coq.coqPackages.coq);
   why3Conf = pkgs.runCommand "why3.conf" { buildInputs = why3BuildInputs; } ''
     why3 -C $out config detect
     echo "${cfg.extraConfig}" >> $out
@@ -25,7 +26,8 @@ in {
       default = [ ];
       description = ''
         A list of packages that should be detected as provers by Why3 and
-        added as build inputs.
+        added as build inputs. Coq can be added independently using the
+        coq option.
       '';
       example = literalExample "with pkgs; [ z3 ccv4 ]";
     };
@@ -43,7 +45,6 @@ in {
     # buildInputs = [(cfg.package.withProvers cfg.provers)];
     aliases = { why3 = "${cfg.package}/bin/why3 ${why3Flags} \\$@"; };
     coq = {
-      enable = true;
       rc = ''
         Add Rec LoadPath "${cfg.package}/lib/why3/coq/" as Why3.
       '';
