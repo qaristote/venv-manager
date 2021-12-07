@@ -40,6 +40,13 @@ in {
 
   config = mkIf cfg.enable {
     buildInputs = why3BuildInputs;
+    # buildInputs = [(cfg.package.withProvers cfg.provers)];
     aliases = { why3 = "${cfg.package}/bin/why3 ${why3Flags} \\$@"; };
+    coq = {
+      enable = true;
+      rc = ''
+        Add Rec LoadPath "${cfg.package}/lib/why3/coq/" as Why3.
+      '';
+    };
   };
 }
