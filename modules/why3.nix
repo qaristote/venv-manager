@@ -5,10 +5,14 @@ let
   cfg = config.why3;
   why3BuildInputs = [ cfg.package ] ++ cfg.provers
     ++ (optional config.coq.enable config.coq.coqPackages.coq);
-  why3Conf = pkgs.runCommand "why3.conf" { buildInputs = why3BuildInputs; } ''
-    why3 -C $out config detect
-    echo "${cfg.extraConfig}" >> $out
-  '';
+  why3Conf = pkgs.runCommand "why3.conf" { buildInputs = why3BuildInputs; } (''
+    why3 --config=$out config detect
+  '' + (optionalString (cfg.defaultEditor != null) ''
+    sed -i 's/^default_editor = ".*"$/default_editor = "${cfg.defaultEditor} %f"/' $out
+  '') + ''
+    echo "" >> $out
+    echo '${cfg.extraConfig}' >> $out
+  '');
   why3Flags = concatStringsSep " " [ "--config=${why3Conf}" ];
 in {
   options.why3 = {
@@ -30,6 +34,14 @@ in {
         coq option.
       '';
       example = literalExample "with pkgs; [ z3 ccv4 ]";
+    };
+    defaultEditor = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        The default editor to launch provers with.
+      '';
+      example = "emacsclient -c";
     };
     extraConfig = mkOption {
       type = types.lines;
