@@ -1,7 +1,7 @@
 {  pkgs, settings }:
 
 let
-  lib = pkgs.lib; 
+  lib = pkgs.lib;
   defaultSettings = lib.optional (lib.pathExists ./config/default.nix) ./config;
   module = lib.evalModules {
     modules = [ settings ./modules ] ++ defaultSettings;
