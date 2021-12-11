@@ -17,23 +17,21 @@ let
 
   stdlibDir = "${cfg.ocamlPackages.findlib}/lib/ocaml/${cfg.version}/site-lib";
   ocamlInit = pkgs.writeText "ocamlinit" (
-
+    # load libs
     (concatStringsSep "\n" (map (dir: ''
       let () = try Topdirs.dir_directory "${dir}"
                with Not_found -> ();;
-    '') ([ stdlibDir ] ++ cfg.toplevel.libDirs)))
-
-    + ''
+    '') ([ stdlibDir ] ++ cfg.toplevel.libDirs))) + ''
       #use "topfind";;
     ''
-
-    + (optionalString cfg.toplevel.list "#list;;")
-
+    # enable threading
     + (optionalString cfg.toplevel.thread "#thread;;")
-
+    # list packages 
+    + (optionalString cfg.toplevel.list "#list;;")
+    # require packages
     + (concatStringsSep "\n"
       (map (pkg: ''# require "${pkg.pname}";;'') userPackages))
-
+    # additional init commands
     + cfg.toplevel.extraInit
 
   );
