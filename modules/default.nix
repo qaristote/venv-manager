@@ -3,8 +3,15 @@
 with lib;
 let cfg = config;
 in {
-  imports =
-    [ ./coq.nix ./golang.nix ./latex.nix ./nix.nix ./python.nix ./ocaml.nix ./why3.nix ];
+  imports = [
+    ./coq.nix
+    ./golang.nix
+    ./latex.nix
+    ./nix.nix
+    ./python.nix
+    ./ocaml.nix
+    ./why3.nix
+  ];
 
   options = {
     # Inputs
@@ -81,7 +88,7 @@ in {
         .direnv/aliases. They may then take arguments. This also means that
         "recursive" aliases (e.g. ssh="export A=something ssh") will fail ; the
         executable in the definition should be called by its full path (e.g.
-        $\{pkgs.openssh\}/bin/ssh). 
+        $\{pkgs.openssh\}/bin/ssh).
       '';
       example = literalExample ''
         { zz = "ls -la"; };
@@ -90,7 +97,26 @@ in {
 
     # Misc
     ## Whether the shell is to be loaded by direnv
-    direnv.enable = mkEnableOption "direnv";
+    direnv.enable = mkEnableOption "direnv" // {
+      description = ''
+        Whether the shell is to be loaded by direnv.
+      '';
+    };
+    pinDerivations = mkEnableOption "dependencies derivation pinning" // {
+      description = ''
+        Whether to pin the shell dependencies in a snapshot that will not be
+        garbage collected.
+
+        From https://nixos.wiki/wiki/Storage_optimization#Pinning :
+        This will create a persistent snapshot of your shell.nix dependencies,
+        which then won't be garbage collected, as long as you have configured
+        keep-outputs = true (and haven't changed the default of
+        keep-derivations = true). This is useful if your project has a
+        dependency with no substitutes available, or you don't want to spend
+        time waiting to re-download your dependencies every time you enter the
+        shell.
+      '';
+    };
 
     # Hooks
     shellHook = mkOption {
@@ -117,9 +143,10 @@ in {
   };
 
   config.shellHook = concatStringsSep "\n" (
-    # Environment variables are declared in a shell hook because simply adding the
-    # top-level arguments of pkgs.mkShell ovewrites the old values of the
-    # variables, which may be a problem, for example for PATH.
+    # envVars
+    ## Environment variables are declared in a shell hook because simply adding the
+    ## top-level arguments of pkgs.mkShell ovewrites the old values of the
+    ## variables, which may be a problem, for example for PATH.
     (let
       dollar = "$";
       makeEnvVarCommand = name:
@@ -129,11 +156,12 @@ in {
             optionalString (!reset) (''"${dollar}${name}":'')
           }"${value}"'';
     in (attrValues (mapAttrs makeEnvVarCommand cfg.envVars)))
+    # aliases
     ++ (if cfg.direnv.enable then
       (let
         aliasDir = ''"$PWD"/.direnv/aliases'';
         makeAliasCommand = name: value:
-          let target = ''${aliasDir}/${name}'';
+          let target = "${aliasDir}/${name}";
           in ''
             echo '#!${pkgs.bash}/bin/bash -e' > "${target}"
             echo "${value}" >> "${target}"
@@ -146,5 +174,10 @@ in {
       ''] ++ (attrValues (mapAttrs makeAliasCommand cfg.aliases))))
     else
       (let makeAliasCommand = name: value: ''alias "${name}"="${value}"'';
-      in (attrValues (mapAttrs makeAliasCommand cfg.aliases)))));
+      in (attrValues (mapAttrs makeAliasCommand cfg.aliases))))
+    # pinDerivations
+    ++ (optional cfg.pinDerivations ''
+      rm -rf .nix-gc-roots
+      ${pkgs.nix}/bin/nix-instantiate shell.nix --indirect --add-root ./.nix-gc-roots/shell.drv
+    ''));
 }
