@@ -22,7 +22,7 @@ in {
       type = types.listOf types.package;
       default = [ ];
       description = ''
-        The list of derivations which will be made available to the environment.
+        A list of derivations which will be made available to the environment.
       '';
       example = literalExample ''
         [ pkgs.ocamlPackages.owl ]
@@ -32,7 +32,8 @@ in {
       type = types.listOf types.package;
       default = [ ];
       description = ''
-        The list of derivations which will be made available to the environment at run-time.
+        A list of derivations which will be made available to the environment
+        and will be propagated.
       '';
       example = literalExample ''
         [ pkgs.python3 ];
