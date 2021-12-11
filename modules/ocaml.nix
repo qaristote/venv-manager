@@ -15,16 +15,29 @@ let
       (optional (versionAtLeast cfg.version "4.02") dune_1)) ++ tuaregPackages
     ++ userPackages;
 
-  ocamlInit = pkgs.writeText "ocamlinit" (''
-    let () =
-        try Topdirs.dir_directory "${cfg.ocamlPackages.findlib}/lib/ocaml/${cfg.version}/site-lib"
-        with Not_found -> ()
-    ;;
-    #use "topfind";;
-  '' + (optionalString cfg.toplevel.list "#list;;")
-    + (optionalString cfg.toplevel.thread "#thread;;") + (concatStringsSep "\n"
-      (map (pkg: ''#require "${pkg.pname}";;'') userPackages))
-    + cfg.toplevel.extraInit);
+  stdlibDir = "${cfg.ocamlPackages.findlib}/lib/ocaml/${cfg.version}/site-lib";
+  ocamlInit = pkgs.writeText "ocamlinit" (
+
+    (concatStringsSep "\n" (map (dir: ''
+      let () = try Topdirs.dir_directory "${dir}"
+               with Not_found -> ();;
+    '') ([ stdlibDir ] ++ cfg.toplevel.libDirs)))
+
+    + ''
+      #use "topfind";;
+    ''
+
+    + (optionalString cfg.toplevel.list "#list;;")
+
+    + (optionalString cfg.toplevel.thread "#thread;;")
+
+    + (concatStringsSep "\n"
+      (map (pkg: ''# require "${pkg.pname}";;'') userPackages))
+
+    + cfg.toplevel.extraInit
+
+  );
+
 in {
   options.ocaml = {
     enable = mkEnableOption { name = "ocaml"; };
@@ -69,6 +82,17 @@ in {
           The list of names of packages to load when launching a top-level.
         '';
         example = [ "owl" "lwt" ];
+      };
+      libDirs = mkOption {
+        type = types.listOf types.path;
+        default = [ ];
+        description = ''
+          Additional paths from which to load OCaml libraries.
+        '';
+        example = let dollar = "$";
+        in literalExample ''
+          [ ${dollar}{my-package}/lib/ocaml/${dollar}{config.ocaml.version}/site-lib/ ]
+        '';
       };
       # Whether to list loaded packages when launching a top-level.
       list = mkEnableOption "#require list;;";
