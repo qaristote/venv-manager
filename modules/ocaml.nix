@@ -4,21 +4,20 @@ with lib;
 with builtins;
 let
   cfg = config.ocaml;
-  ocamlVersion = (parseDrvName cfg.ocamlPackages.ocaml.name).version;
 
   tuaregPackages = optionals cfg.tuareg.enable (with pkgs; [ ocamlformat opam ])
     ++ (with cfg.ocamlPackages; [ merlin ocp-indent utop ]);
   userPackages = cfg.packages cfg.ocamlPackages;
   ocamlBuildInputs = (with cfg.ocamlPackages; [ ocaml findlib ]) ++ (with pkgs;
-    if versionAtLeast ocamlVersion "4.12" then
+    if versionAtLeast cfg.version "4.12" then
       [ dune_2 ]
     else
-      (optional (versionAtLeast ocamlVersion "4.02") dune_1)) ++ tuaregPackages
+      (optional (versionAtLeast cfg.version "4.02") dune_1)) ++ tuaregPackages
     ++ userPackages;
 
   ocamlInit = pkgs.writeText "ocamlinit" (''
     let () =
-        try Topdirs.dir_directory "${cfg.ocamlPackages.findlib}/lib/ocaml/${ocamlVersion}/site-lib"
+        try Topdirs.dir_directory "${cfg.ocamlPackages.findlib}/lib/ocaml/${cfg.version}/site-lib"
         with Not_found -> ()
     ;;
     #use "topfind";;
@@ -29,6 +28,17 @@ let
 in {
   options.ocaml = {
     enable = mkEnableOption { name = "ocaml"; };
+    version = mkOption {
+      type = types.uniq types.str;
+      default = (builtins.parseDrvName cfg.ocamlPackages.ocaml.name).version;
+      defaultText = literalExample
+        "(builtins.parseDrvName config.ocaml.ocamlPackages.ocaml.name).version";
+      description = ''
+        The version of OCaml. This option only exist for propagating the version
+        of OCaml through the configuration. As such, it should not be set manually
+        but through the ocamlPackages option.
+      '';
+    };
     ocamlPackages = mkOption {
       type = types.lazyAttrsOf types.package;
       default = pkgs.ocamlPackages;
