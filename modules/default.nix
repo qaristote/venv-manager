@@ -102,20 +102,37 @@ in {
         Whether the shell is to be loaded by direnv.
       '';
     };
-    pinDerivations = mkEnableOption "dependencies derivation pinning" // {
-      description = ''
-        Whether to pin the shell dependencies in a snapshot that will not be
-        garbage collected.
+    pinDerivations = {
+      enable = mkEnableOption "dependencies derivation pinning" // {
+        description = ''
+          Whether to pin the shell dependencies in a snapshot that will not be
+          garbage collected.
 
-        From https://nixos.wiki/wiki/Storage_optimization#Pinning :
-        This will create a persistent snapshot of your shell.nix dependencies,
-        which then won't be garbage collected, as long as you have configured
-        keep-outputs = true (and haven't changed the default of
-        keep-derivations = true). This is useful if your project has a
-        dependency with no substitutes available, or you don't want to spend
-        time waiting to re-download your dependencies every time you enter the
-        shell.
-      '';
+          From https://nixos.wiki/wiki/Storage_optimization#Pinning :
+          This will create a persistent snapshot of your shell.nix dependencies,
+          which then won't be garbage collected, as long as you have configured
+          keep-outputs = true (and haven't changed the default of
+          keep-derivations = true). This is useful if your project has a
+          dependency with no substitutes available, or you don't want to spend
+          time waiting to re-download your dependencies every time you enter the
+          shell.
+        '';
+      };
+      filename = mkOption {
+        type = types.str;
+        default = "./shell.nix";
+        description = ''
+          The name of the shell file whose dependencies are to be pinned.
+        '';
+        example = "./default.nix";
+      };
+      outputDir = mkOption {
+        type = types.str;
+        default = "./.nix-gc-roots";
+        description = ''
+          The name of the directory in which to store the derivation snapshots.
+        '';
+      };
     };
 
     # Hooks
@@ -163,10 +180,16 @@ in {
         makeAliasCommand = name: value:
           let target = "${aliasDir}/${name}";
           in ''
-            echo '#!${pkgs.bash}/bin/bash -e' > "${target}"
-            echo "${value}" >> "${target}"
-            chmod +x "${target}"
-          '';
+                        echo '#!${pkgs.bash}/b    Please let me know if you test positive for covid.
+            Since there are no new cases since last weekend, I asked
+            the teachers to teach face to face again.
+
+                Take care of you,
+
+            in/bash -e' > "${target}"
+                        echo "${value}" >> "${target}"
+                        chmod +x "${target}"
+                      '';
       in ([''
         mkdir -p "${aliasDir}"
         rm -f "${aliasDir}"/*
@@ -176,8 +199,8 @@ in {
       (let makeAliasCommand = name: value: ''alias "${name}"="${value}"'';
       in (attrValues (mapAttrs makeAliasCommand cfg.aliases))))
     # pinDerivations
-    ++ (optional cfg.pinDerivations ''
+    ++ (optional cfg.pinDerivations.enable ''
       rm -rf .nix-gc-roots
-      ${pkgs.nix}/bin/nix-instantiate shell.nix --indirect --add-root ./.nix-gc-roots/shell.drv
+      ${pkgs.nix}/bin/nix-instantiate '${cfg.pinDerivations.filename}' --indirect --add-root '${cfg.pinDerivations.outputDir}/shell.drv'
     ''));
 }
