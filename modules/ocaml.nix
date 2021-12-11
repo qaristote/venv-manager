@@ -43,9 +43,8 @@ in {
     enable = mkEnableOption { name = "ocaml"; };
     version = mkOption {
       type = types.uniq types.str;
-      default = (builtins.parseDrvName cfg.ocamlPackages.ocaml.name).version;
-      defaultText = literalExample
-        "(builtins.parseDrvName config.ocaml.ocamlPackages.ocaml.name).version";
+      default = cfg.ocamlPackages.ocaml.version;
+      defaultText = literalExample "cfg.ocamlPackages.ocaml.version";
       description = ''
         The version of OCaml. This option only exist for propagating the version
         of OCaml through the configuration. As such, it should not be set manually
