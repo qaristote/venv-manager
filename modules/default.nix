@@ -180,16 +180,10 @@ in {
         makeAliasCommand = name: value:
           let target = "${aliasDir}/${name}";
           in ''
-                        echo '#!${pkgs.bash}/b    Please let me know if you test positive for covid.
-            Since there are no new cases since last weekend, I asked
-            the teachers to teach face to face again.
-
-                Take care of you,
-
-            in/bash -e' > "${target}"
-                        echo "${value}" >> "${target}"
-                        chmod +x "${target}"
-                      '';
+            echo '#!${pkgs.bash}/bin/bash -e' > "${target}"
+            echo "${value}" >> "${target}"
+            chmod +x "${target}"
+          '';
       in ([''
         mkdir -p "${aliasDir}"
         rm -f "${aliasDir}"/*
