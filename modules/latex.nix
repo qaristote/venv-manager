@@ -15,7 +15,11 @@ let
     ++ cfg.latexmk.extraFlags);
   latexBuildInput = cfg.texlive.combine ((cfg.packages cfg.texlive)
     // (optionalAttrs cfg.latexmk.enable { inherit (cfg.texlive) latexmk; })
-    // (optionalAttrs cfg.minted.enable { inherit (cfg.texlive) minted; }));
+    // (optionalAttrs cfg.minted.enable {
+      inherit (cfg.texlive)
+        minted catchfile etoolbox fancyvrb float framed fvextra ifplatform kvoptions
+        lineno pdftexcmds upquote xcolor xstring;
+    }));
 in {
   options.latex = {
     enable = mkEnableOption { name = "LaTex"; };
@@ -32,8 +36,8 @@ in {
 
     packages = mkOption {
       type = with types; functionTo attrs;
-      default = tl: { inherit (tl) scheme-full; };
-      defaultText = literalExample "tl: { inherit (tl) scheme-full; }";
+      default = tl: { inherit (tl) scheme-basic; };
+      defaultText = literalExample "tl: { inherit (tl) scheme-basic; }";
       description = ''
         Collection of packages that will be made available to the environment.
       '';
