@@ -8,8 +8,9 @@ in {
     ./golang.nix
     ./latex.nix
     ./nix.nix
-    ./python.nix
     ./ocaml.nix
+    ./python.nix
+    ./rust.nix
     ./why3.nix
   ];
 
