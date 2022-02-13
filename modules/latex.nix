@@ -17,8 +17,8 @@ let
     // (optionalAttrs cfg.latexmk.enable { inherit (cfg.texlive) latexmk; })
     // (optionalAttrs cfg.minted.enable {
       inherit (cfg.texlive)
-        minted catchfile etoolbox fancyvrb float framed fvextra ifplatform kvoptions
-        lineno pdftexcmds upquote xcolor xstring;
+        minted catchfile etoolbox fancyvrb float framed fvextra ifplatform
+        kvoptions lineno pdftexcmds upquote xcolor xstring;
     }));
 in {
   options.latex = {
@@ -84,11 +84,22 @@ in {
       };
     };
 
-    minted.enable = mkEnableOption "minted";
+    minted = {
+      enable = mkEnableOption "minted";
+      pygments = mkOption {
+        type = types.package;
+        default = pkgs.pythonPackages.pygments;
+        defaultText = literalExample "pkgs.pythonPackages.pygments";
+        description = ''
+          The package providing pygments.
+        '';
+      };
+    };
   };
 
   config = mkIf cfg.enable {
-    buildInputs = [ latexBuildInput ] ++ (optional cfg.latexmk.enable pkgs.ps);
+    buildInputs = [ latexBuildInput ] ++ (optional cfg.latexmk.enable pkgs.ps)
+      ++ (optional cfg.minted.enable cfg.minted.pygments);
     aliases.latexmk = mkIf cfg.latexmk.enable
       "${latexBuildInput}/bin/latexmk ${latexmkFlags} \\$@";
     python = mkIf cfg.minted.enable {
