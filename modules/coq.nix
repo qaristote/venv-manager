@@ -3,23 +3,33 @@
 with lib;
 let
   cfg = config.coq;
-  coqBuildInputs =
-    (with cfg.coqPackages; [ coq ])
-    ++ (cfg.packages cfg.coqPackages);
+  # coqBuildInputs = (with cfg.coqPackages; [ coq ])
+  #   ++ (cfg.packages cfg.coqPackages);
+  coqBuildInputs = [ cfg.coq ]
+    ++ (map (package: package.override { coq = cfg.coq; })
+      (cfg.packages pkgs.coqPackages));
   coqrc = pkgs.writeText "coqrc" cfg.rc;
   coqFlags = concatStringsSep " " ([ "-init-file ${coqrc}" ]);
 in {
   options.coq = {
     enable = mkEnableOption { name = "coq"; };
-    coqPackages = mkOption {
-      type = types.lazyAttrsOf types.package;
-      default = pkgs.coqPackages;
-      defaultText = literalExample "pkgs.coqPackages";
+    coq = mkOption {
+      type = types.package;
+      default = pkgs.coq;
+      defaultText = literalExample "pkgs.coq";
       description = ''
-        The set of Coq packages from which to get Coq and its packages.
-        Use this option to set the version of Coq.
+        The package providing Coq. Use this option to set the version of Coq.
       '';
     };
+    # coqPackages = mkOption {
+    #   type = types.lazyAttrsOf types.package;
+    #   default = pkgs.coqPackages;
+    #   defaultText = literalExample "pkgs.coqPackages";
+    #   description = ''
+    #     The set of Coq packages from which to get Coq and its packages.
+    #     Use this option to set the version of Coq.
+    #   '';
+    # };
     packages = mkOption {
       type = with types; functionTo (listOf package);
       default = _: [ ];
@@ -49,9 +59,9 @@ in {
   config = mkIf cfg.enable {
     buildInputs = coqBuildInputs;
     aliases = {
-      coqc = "${cfg.coqPackages.coq}/bin/coqc ${coqFlags} \\$@";
-      coqide = "${cfg.coqPackages.coq}/bin/coqide ${coqFlags} \\$@";
-      coqtop = "${cfg.coqPackages.coq}/bin/coqtop ${coqFlags} \\$@";
+      coqc = "${cfg.coq}/bin/coqc ${coqFlags} \\$@";
+      coqide = "${cfg.coq}/bin/coqide ${coqFlags} \\$@";
+      coqtop = "${cfg.coq}/bin/coqtop ${coqFlags} \\$@";
     };
   };
 }
