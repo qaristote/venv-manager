@@ -4,7 +4,7 @@ with lib;
 let
   cfg = config.why3;
   why3BuildInputs = [ cfg.package ] ++ cfg.provers
-    ++ (optional config.coq.enable config.coq.coqPackages.coq);
+    ++ (optional config.coq.enable config.coq.coq);
   why3Conf = pkgs.runCommand "why3.conf" { buildInputs = why3BuildInputs; } (''
     why3 --config=$out config detect
   '' + (optionalString (cfg.defaultEditor != null) ''
