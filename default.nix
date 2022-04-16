@@ -1,4 +1,4 @@
-{  pkgs, settings }:
+{ pkgs, settings }:
 
 let
   lib = pkgs.lib;
@@ -7,8 +7,14 @@ let
     modules = [ settings ./modules ] ++ defaultSettings;
     specialArgs.pkgs = pkgs;
   };
-in
-pkgs.mkShell ({
-  inherit (module.config)
+  clean-hooks = hookList:
+    lib.mapAttrs (name: value:
+      if lib.elem name hookList then ''
+        ${value}
+        export "${name}"=
+      '' else
+        value);
+in pkgs.mkShell ({
+  inherit (clean-hooks [ "shellHook" ] module.config)
     inputsFrom buildInputs nativeBuildInputs shellHook exitHook;
 })
