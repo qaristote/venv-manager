@@ -163,7 +163,7 @@ in {
   config.shellHook = concatStringsSep "\n" (
     # envVars
     ## Environment variables are declared in a shell hook because simply adding the
-    ## top-level arguments of pkgs.mkShell ovewrites the old values of the
+    ## top-level arguments of pkgs.mkShell overwrites the old values of the
     ## variables, which may be a problem, for example for PATH.
     (let
       dollar = "$";
