@@ -17,6 +17,6 @@ in {
   };
 
   config = mkIf cfg.enable {
-    buildInputs = [ cfg.package ] ++ (with pkgs; [ gofumpt golint ]);
+    buildInputs = [ cfg.package ] ++ (with pkgs; [ gocode gofumpt golint ]);
   };
 }
