@@ -86,20 +86,11 @@ in {
 
     minted = {
       enable = mkEnableOption "minted";
-      pygments = mkOption {
-        type = types.package;
-        default = pkgs.pythonPackages.pygments;
-        defaultText = literalExample "pkgs.pythonPackages.pygments";
-        description = ''
-          The package providing pygments.
-        '';
-      };
     };
   };
 
   config = mkIf cfg.enable {
-    buildInputs = [ latexBuildInput ] ++ (optional cfg.latexmk.enable pkgs.ps)
-      ++ (optional cfg.minted.enable cfg.minted.pygments);
+    buildInputs = [ latexBuildInput ] ++ (optional cfg.latexmk.enable pkgs.ps);
     aliases.latexmk = mkIf cfg.latexmk.enable
       "${latexBuildInput}/bin/latexmk ${latexmkFlags} \\$@";
     python = mkIf cfg.minted.enable {
