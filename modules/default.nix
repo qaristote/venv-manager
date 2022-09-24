@@ -6,6 +6,7 @@ in {
   imports = [
     ./coq.nix
     ./golang.nix
+    ./haskell.nix
     ./latex.nix
     ./nix.nix
     ./ocaml.nix
