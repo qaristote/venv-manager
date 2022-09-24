@@ -29,7 +29,7 @@ let
     ''
     # enable threading
     + (optionalString cfg.toplevel.thread "#thread;;")
-    # list packages 
+    # list packages
     + (optionalString cfg.toplevel.list "#list;;")
     # require packages
     + (concatStringsSep "\n"
