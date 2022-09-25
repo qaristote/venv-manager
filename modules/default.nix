@@ -118,6 +118,9 @@ in {
           dependency with no substitutes available, or you don't want to spend
           time waiting to re-download your dependencies every time you enter the
           shell.
+
+          This should not be necessary when using nix-direnv, which already pins
+          the direnv profile.
         '';
       };
       filename = mkOption {
