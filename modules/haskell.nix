@@ -8,6 +8,7 @@ let
   spacemacsPackages = haskellPackages:
     with haskellPackages; [
       apply-refact
+      hindent
       hlint
       stylish-haskell
       hasktags
